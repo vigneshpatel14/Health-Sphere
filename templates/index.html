@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-beta.1/css/select2.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <nav>
+    <div class="logo">Health Dashboard</div>
+    <div class="nav-links">
+      <a href="#">Dashboard</a>
+      <a href="#">Symptoms Checker</a>
+      <a href="#">Care and Advice</a>
+      <a href="#">Medicine Reminder</a>
+      <div class="user-menu">
+        <img src="/api/placeholder/40/40" alt="User Avatar">
+        <div class="dropdown-menu">
+          <a href="#">View Profile</a>
+          <a href="#">Settings</a>
+          <a href="#">Log Out</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Health Dashboard</h1>
+    <div class="grid">
+      <!-- Existing health metrics (Heart Rate, Temperature, etc.) -->
+      <div class="card">
+        <div class="icon-wrapper">
+          <i class="fas fa-heartbeat"></i>
+          <h2>Heart Rate</h2>
+        </div>
+        <input type="number" min="40" max="180" id="heartRate" class="input">
+        <p>Your current heart rate is <span id="heartRateValue"></span> bpm.</p>
+        <div id="heartRateAlert" class="alert"></div>
+      </div>
+      <div class="card">
+        <div class="icon-wrapper">
+          <i class="fas fa-thermometer-half"></i>
+          <h2>Temperature</h2>
+        </div>
+        <input type="number" min="95" max="110" step="0.1" id="temperature" class="input">
+        <p>Your current temperature is <span id="temperatureValue"></span> °F.</p>
+        <div id="temperatureAlert" class="alert"></div>
+      </div>
+      <div class="card">
+        <div class="icon-wrapper">
+          <i class="fas fa-tint"></i>
+          <h2>Blood Pressure</h2>
+        </div>
+        <input type="text" placeholder="e.g., 120/80" id="bloodPressure" class="input">
+        <p>Your blood pressure is <span id="bloodPressureValue"></span>.</p>
+        <div id="bloodPressureAlert" class="alert"></div>
+      </div>
+      <div class="card">
+        <div class="icon-wrapper">
+          <i class="fas fa-bed"></i>
+          <h2>Sleep</h2>
+        </div>
+        <input type="number" min="0" max="24" step="0.1" id="sleepHours" class="input">
+        <p>You slept for <span id="sleepHoursValue"></span> hours.</p>
+        <div id="sleepAlert" class="alert"></div>
+      </div>
+    </div>
+
+    <h2>Health Trends</h2>
+    <div class="chart-card">
+      <canvas id="healthChart"></canvas>
+    </div>
+
+    <!-- Symptoms Checker -->
+    <h2>Symptoms Checker</h2>
+    <div class="card">
+      <label for="symptomsSelect">Select Symptoms:</label>
+      <select id="symptomsSelect" multiple class="input"></select>
+      <button id="checkSymptomsBtn" class="button">Check Symptoms</button>
+      <div id="loading" style="display:none;">Loading...</div>
+      <div id="symptomsResult" class="result"></div>
+    </div>
+
+    <h2>Medicine Reminder</h2>
+    <div class="card">
+      <div class="reminder-input">
+        <input type="time" id="medicationReminder" class="input">
+        <button id="addReminderBtn" class="button">Add Reminder</button>
+      </div>
+      <div id="remindersList"></div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-beta.1/js/select2.min.js"></script>
+  <script src="/static/js/healthMetrics.js"></script>
+  <script src="/static/js/symptomsChecker.js"></script>
+  <script src="/static/js/medicineReminder.js"></script>
+  <script src="/static/js/healthChart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    // Populate symptoms dropdown
+    const symptomsList = [
+      "itching","skin_rash,nodal_skin_eruptions","continuous_sneezing","shivering","chills","joint_pain","stomach_pain","acidity","ulcers_on_tongue","muscle_wasting","vomiting","burning_micturition","spotting_ urination","fatigue","weight_gain","anxiety","cold_hands_and_feets","mood_swings","weight_loss","restlessness","lethargy","patches_in_throat","irregular_sugar_level","cough","high_fever","sunken_eyes","breathlessness","sweating","dehydration","indigestion","headache","yellowish_skin","dark_urine","nausea","loss_of_appetite","pain_behind_the_eyes","back_pain","constipation","abdominal_pain","diarrhoea","mild_fever","yellow_urine","yellowing_of_eyes","acute_liver_failure","fluid_overload","swelling_of_stomach","swelled_lymph_nodes","malaise","blurred_and_distorted_vision","phlegm","throat_irritation","redness_of_eyes","sinus_pressure","runny_nose","congestion","chest_pain","weakness_in_limbs","fast_heart_rate","pain_during_bowel_movements","pain_in_anal_region","bloody_stool","irritation_in_anus","neck_pain","dizziness","cramps","bruising","obesity","swollen_legs","swollen_blood_vessels","puffy_face_and_eyes","enlarged_thyroid","brittle_nails","swollen_extremeties","excessive_hunger","extra_marital_contacts","drying_and_tingling_lips","slurred_speech","knee_pain","hip_joint_pain","muscle_weakness","stiff_neck","swelling_joints","movement_stiffness","spinning_movements","loss_of_balance","unsteadiness","weakness_of_one_body_side","loss_of_smell","bladder_discomfort","foul_smell_of urine","continuous_feel_of_urine","passage_of_gases","internal_itching","toxic_look_(typhos)","depression","irritability","muscle_pain","altered_sensorium","red_spots_over_body","belly_pain","abnormal_menstruation","dischromic _patches","watering_from_eyes","increased_appetite","polyuria","family_history","mucoid_sputum","rusty_sputum","lack_of_concentration","visual_disturbances","receiving_blood_transfusion","receiving_unsterile_injections","coma","stomach_bleeding","distention_of_abdomen","history_of_alcohol_consumption","fluid_overload","blood_in_sputum","prominent_veins_on_calf","palpitations","painful_walking","pus_filled_pimples","blackheads","scurring","skin_peeling","silver_like_dusting","small_dents_in_nails","inflammatory_nails","blister","red_sore_around_nose","yellow_crust_ooze","prognosis"
+    ]; // Add full symptoms list here
+
+    $(document).ready(function() {
+      $('#symptomsSelect').select2({
+        placeholder: "Select your symptoms",
+        data: symptomsList.map(symptom => ({ id: symptom, text: symptom }))
+      });
+    });
+
+    // Predict Disease
+    document.getElementById('checkSymptomsBtn').addEventListener('click', function() {
+      const selectedSymptoms = $('#symptomsSelect').val();
+      if (!selectedSymptoms || selectedSymptoms.length === 0) {
+        alert("Please select at least one symptom.");
+        return;
+      }
+
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('symptomsResult').innerHTML = '';
+
+      fetch('/api/predict-disease', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ symptoms: selectedSymptoms }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('loading').style.display = 'none';
+          if (data.disease) {
+            document.getElementById('symptomsResult').innerHTML = `
+              <h3>Predicted Disease</h3>
+              <p><strong>${data.disease}</strong></p>
+              <h3>Description</h3>
+              <p>${data.description}</p>
+              <h3>Precautions</h3>
+              <ul>${data.precautions.map(p => `<li>${p}</li>`).join('')}</ul>
+              <h3>Medications</h3>
+              <ul>${data.medications.map(m => `<li>${m}</li>`).join('')}</ul>
+              <h3>Workouts</h3>
+              <ul>${data.workout.map(w => `<li>${w}</li>`).join('')}</ul>
+              <h3>Diets</h3>
+              <ul>${data.diets.map(d => `<li>${d}</li>`).join('')}</ul>
+            `;
+          } else {
+            document.getElementById('symptomsResult').innerText = "Unable to predict the disease. Please try again later.";
+          }
+        })
+        .catch(error => {
+          document.getElementById('loading').style.display = 'none';
+          console.error("Error fetching prediction:", error);
+          document.getElementById('symptomsResult').innerText = "An error occurred. Please try again.";
+        });
+    });
+  </script>
+</body>
+</html>
