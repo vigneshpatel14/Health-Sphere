@@ -18,7 +18,7 @@ model_path = os.path.join(MODEL_DIR, 'svc.pkl')
 model = pickle.load(open(model_path, 'rb'))
 
 df = pd.read_csv(os.path.join(DATA_DIR, 'Training.csv'))
-symptoms_df = pd.read_csv(os.path.join(DATA_DIR, 'symtoms_df.CSV'))
+symptoms_df = pd.read_csv(os.path.join(DATA_DIR, 'symtoms_df.csv'))
 precautions_df = pd.read_csv(os.path.join(DATA_DIR, 'precautions_df.csv'))
 workouts_df = pd.read_csv(os.path.join(DATA_DIR, 'workout_df.csv'))
 diets_df = pd.read_csv(os.path.join(DATA_DIR, 'diets.csv'))
