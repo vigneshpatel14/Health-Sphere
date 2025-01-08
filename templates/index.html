@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthSphere</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-beta.1/css/select2.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        autoDisplay: false,
+        includedLanguages: 'en,hi,ta,te,bn,gu'
+      }, 'google_translate_element');
+    }
+  </script>
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <style>
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 600px;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo" style="display: flex; align-items: center;">
+      <img src="/static/images/logo.png" alt="" style="width: 70px; height: 70px; margin-right: 10px;">
+      <span>HealthSphere</span>
+    </div>
+    <div class="nav-links">
+      <a href="#">Dashboard</a>
+      <a href="#">Symptoms Checker</a>
+      <a href="#">Care and Advice</a>
+      <a href="#">Medicine Reminder</a>
+      <a href="https://pharmeasy.in/" id="cart-link" style="margin-left: 20px;" target="_blank">
+        <i class="fas fa-shopping-cart" style="font-size: 24px;"></i> Cart
+      </a>
+      <a href="http://localhost:5000/" target="_blank">Mental Health</a>
+      <div class="user-menu" style="display: flex; align-items: center;">
+        <i class="fas fa-user-circle" style="font-size: 24px;"></i>
+        <div class="dropdown-menu">
+          <a href="#">View Profile</a>
+          <a href="#">Settings</a>
+          <a href="#">Log Out</a>
+          <a href="javascript:void(0);" id="historyBtn">History</a>
+        </div>
+      </div>
+      <div id="google_translate_element" style="margin-left: 20px;"></div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Health Dashboard</h1>
+    <div class="grid">
+      <div class="card">
+        <div class="icon-wrapper">
+          <i class="fas fa-heartbeat"></i>
+          <h2>Heart Rate</h2>
+        </div>
+        <input type="number" min="40" max="180" id="heartRate" class="input">
+        <p>Your current heart rate is <span id="heartRateValue"></span> bpm.</p>
+        <div id="heartRateAlert" class="alert"></div>
+      </div>
+      <div class="card">
+        <div class="icon-wrapper">
+          <i class="fas fa-thermometer-half"></i>
+          <h2>Temperature</h2>
+        </div>
+        <input type="number" min="95" max="110" step="0.1" id="temperature" class="input">
+        <p>Your current temperature is <span id="temperatureValue"></span> °F.</p>
+        <div id="temperatureAlert" class="alert"></div>
+      </div>
+      <div class="card">
+        <div class="icon-wrapper">
+          <i class="fas fa-tint"></i>
+          <h2>Blood Pressure</h2>
+        </div>
+        <input type="text" placeholder="e.g., 120/80" id="bloodPressure" class="input">
+        <p>Your blood pressure is <span id="bloodPressureValue"></span>.</p>
+        <div id="bloodPressureAlert" class="alert"></div>
+      </div>
+      <div class="card">
+        <div class="icon-wrapper">
+          <i class="fas fa-bed"></i>
+          <h2>Sleep</h2>
+        </div>
+        <input type="number" min="0" max="24" step="0.1" id="sleepHours" class="input">
+        <p>You slept for <span id="sleepHoursValue"></span> hours.</p>
+        <div id="sleepAlert" class="alert"></div>
+      </div>
+    </div>
+
+    <h2>Submit Your Health Data</h2>
+    <div class="card">
+      <button id="submitHealthDataBtn" class="button text-center">Submit</button>
+    </div>
+
+    <h2>Health Trends</h2>
+    <div class="chart-card">
+      <canvas id="healthChart"></canvas>
+    </div>
+
+    <h2>Symptoms Checker</h2>
+    <div class="card">
+      <label for="symptomsSelect">Select Symptoms:</label>
+      <select id="symptomsSelect" multiple class="input"></select>
+      <button id="checkSymptomsBtn" class="button">Check Symptoms</button>
+      <div id="loading" style="display:none;">Loading...</div>
+      <div id="symptomsResult" class="result"></div>
+    </div>
+
+    <h2>Medicine Reminder</h2>
+    <div class="card">
+      <div class="reminder-input">
+        <input type="time" id="medicationReminder" class="input">
+        <button id="addReminderBtn" class="button">Add Reminder</button>
+      </div>
+      <div id="remindersList"></div>
+    </div>
+  </div>
+
+  <!-- Modal for Health Data History -->
+  <div id="historyModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Previous Health Data</h2>
+      <div id="previousHealthDataModal" class="card">
+        <ul id="healthDataListModal"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-beta.1/js/select2.min.js"></script>
+  <script src="/static/js/healthMetrics.js"></script>
+  <script src="/static/js/symptomsChecker.js"></script>
+  <script src="/static/js/medicineReminder.js"></script>
+  <script src="/static/js/healthChart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    const symptomsList = [
+      "itching","skin_rash","nodal_skin_eruptions","continuous_sneezing","shivering","chills","joint_pain","stomach_pain","acidity","ulcers_on_tongue","muscle_wasting","vomiting","burning_micturition","spotting_ urination","fatigue","weight_gain","anxiety","cold_hands_and_feets","mood_swings","weight_loss","restlessness","lethargy","patches_in_throat","irregular_sugar_level","cough","high_fever","sunken_eyes","breathlessness","sweating","dehydration","indigestion","headache","yellowish_skin","dark_urine","nausea","loss_of_appetite","pain_behind_the_eyes","back_pain","constipation","abdominal_pain","diarrhoea","mild_fever","yellow_urine","yellowing_of_eyes","acute_liver_failure","fluid_overload","swelling_of_stomach","swelled_lymph_nodes","malaise","blurred_and_distorted_vision","phlegm","throat_irritation","redness_of_eyes","sinus_pressure","runny_nose","congestion","chest_pain","weakness_in_limbs","fast_heart_rate","pain_during_bowel_movements","pain_in_anal_region","bloody_stool","irritation_in_anus","neck_pain","dizziness","cramps","bruising","obesity","swollen_legs","swollen_blood_vessels","puffy_face_and_eyes","enlarged_thyroid","brittle_nails","swollen_extremeties","excessive_hunger","extra_marital_contacts","drying_and_tingling_lips","slurred_speech","knee_pain","hip_joint_pain","muscle_weakness","stiff_neck","swelling_joints","movement_stiffness","spinning_movements","loss_of_balance","unsteadiness","weakness_of_one_body_side","loss_of_smell","bladder_discomfort","foul_smell_of urine","continuous_feel_of_urine","passage_of_gases","internal_itching","toxic_look_(typhos)","depression","irritability","muscle_pain","altered_sensorium","red_spots_over_body","belly_pain","abnormal_menstruation","dischromic _patches","watering_from_eyes","increased_appetite","polyuria","family_history","mucoid_sputum","rusty_sputum","lack_of_concentration","visual_disturbances","receiving_blood_transfusion","receiving_unsterile_injections","coma","stomach_bleeding","distention_of_abdomen","history_of_alcohol_consumption","fluid_overload","blood_in_sputum","prominent_veins_on_calf","palpitations","painful_walking","pus_filled_pimples","blackheads","scurring","skin_peeling","silver_like_dusting","small_dents_in_nails","inflammatory_nails","blister","red_sore_around_nose","yellow_crust_ooze","prognosis"
+    ];
+
+    $(document).ready(function() {
+      $('#symptomsSelect').select2({
+        placeholder: "Select your symptoms",
+        data: symptomsList.map(symptom => ({ id: symptom, text: symptom }))
+      });
+    });
+
+    // Handle the "History" button click
+    document.getElementById('historyBtn').addEventListener('click', function() {
+      document.getElementById('historyModal').style.display = 'block';
+      displayHealthDataHistoryModal();
+    });
+
+    // Handle the "Check Symptoms" button click
+    document.getElementById('checkSymptomsBtn').addEventListener('click', function() {
+      const selectedSymptoms = $('#symptomsSelect').val();
+      if (selectedSymptoms.length === 0) {
+        alert('Please select at least one symptom.');
+        return;
+      }
+
+      document.getElementById('loading').style.display = 'block';
+      fetch('/api/predict-disease', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ symptoms: selectedSymptoms })
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('symptomsResult').innerHTML = `
+          <h3>Predicted Disease: ${data.disease}</h3>
+          <p><strong>Description:</strong> ${data.description}</p>
+          <p><strong>Precautions:</strong> ${data.precautions.join(', ')}</p>
+          <p><strong>Medications:</strong> ${data.medications.join(', ')}</p>
+          <p><strong>Workouts:</strong> ${data.workout.join(', ')}</p>
+          <p><strong>Diets:</strong> ${data.diets.join(', ')}</p>
+        `;
+      })
+      .catch(error => {
+        document.getElementById('loading').style.display = 'none';
+        alert('Error predicting disease. Please try again.');
+        console.error('Error:', error);
+      });
+    });
+
+    // Close the modal
+    document.querySelector('.close').addEventListener('click', function() {
+      document.getElementById('historyModal').style.display = 'none';
+    });
+
+    // Display the health data in the modal
+    function displayHealthDataHistoryModal() {
+      const healthDataHistory = JSON.parse(localStorage.getItem('healthDataHistory')) || [];
+      const healthDataListModal = document.getElementById('healthDataListModal');
+      healthDataListModal.innerHTML = '';
+
+      healthDataHistory.forEach(data => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+          <strong>Date:</strong> ${data.timestamp}<br>
+          <strong>Heart Rate:</strong> ${data.heartRate} bpm<br>
+          <strong>Temperature:</strong> ${data.temperature} °F<br>
+          <strong>Blood Pressure:</strong> ${data.bloodPressure}<br>
+          <strong>Sleep Hours:</strong> ${data.sleepHours} hours
+        `;
+        healthDataListModal.appendChild(listItem);
+      });
+    }
+
+    // Submit health data
+    document.getElementById('submitHealthDataBtn').addEventListener('click', function() {
+      const heartRate = document.getElementById('heartRate').value;
+      const temperature = document.getElementById('temperature').value;
+      const bloodPressure = document.getElementById('bloodPressure').value;
+      const sleepHours = document.getElementById('sleepHours').value;
+
+      const healthData = {
+        heartRate,
+        temperature,
+        bloodPressure,
+        sleepHours,
+        timestamp: new Date().toLocaleString()
+      };
+
+      let healthDataHistory = JSON.parse(localStorage.getItem('healthDataHistory')) || [];
+      healthDataHistory.push(healthData);
+      localStorage.setItem('healthDataHistory', JSON.stringify(healthDataHistory));
+
+      displayHealthDataHistory();
+    });
+
+    function displayHealthDataHistory() {
+      const healthDataHistory = JSON.parse(localStorage.getItem('healthDataHistory')) || [];
+      const healthDataList = document.getElementById('healthDataList');
+      healthDataList.innerHTML = '';
+
+      healthDataHistory.forEach(data => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+          <strong>Date:</strong> ${data.timestamp}<br>
+          <strong>Heart Rate:</strong> ${data.heartRate} bpm<br>
+          <strong>Temperature:</strong> ${data.temperature} °F<br>
+          <strong>Blood Pressure:</strong> ${data.bloodPressure}<br>
+          <strong>Sleep Hours:</strong> ${data.sleepHours} hours
+        `;
+        healthDataList.appendChild(listItem);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', displayHealthDataHistory);
+  </script>
+</body>
+</html>
+<!-- Modal for User Profile -->
+<div id="profileModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>User Profile</h2>
+    <div id="userProfileModal" class="card">
+      <form id="userProfileForm">
+        <label for="userName">Name:</label>
+        <input type="text" id="userName" class="input" required>
+        <label for="userEmail">Email:</label>
+        <input type="email" id="userEmail" class="input" required>
+        <label for="userAge">Age:</label>
+        <input type="number" id="userAge" class="input" required>
+        <label for="userGender">Gender:</label>
+        <select id="userGender" class="input" required>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+        <button type="submit" class="button">Save</button>
+      </form>
+      <div id="userProfileDetails" style="display:none;">
+        <h3>Profile Details</h3>
+        <p><strong>Name:</strong> <span id="profileName"></span></p>
+        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+        <p><strong>Age:</strong> <span id="profileAge"></span></p>
+        <p><strong>Gender:</strong> <span id="profileGender"></span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Handle the "View Profile" button click
+  document.querySelector('.user-menu a[href="#"]').addEventListener('click', function() {
+    document.getElementById('profileModal').style.display = 'block';
+    displayUserProfile();
+  });
+
+  // Close the modal
+  document.querySelectorAll('.close').forEach(closeBtn => {
+    closeBtn.addEventListener('click', function() {
+      this.closest('.modal').style.display = 'none';
+    });
+  });
+
+  // Handle the profile form submission
+  document.getElementById('userProfileForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const userName = document.getElementById('userName').value;
+    const userEmail = document.getElementById('userEmail').value;
+    const userAge = document.getElementById('userAge').value;
+    const userGender = document.getElementById('userGender').value;
+
+    const userProfile = {
+      userName,
+      userEmail,
+      userAge,
+      userGender
+    };
+
+    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+    displayUserProfile();
+  });
+
+  // Display the user profile
+  function displayUserProfile() {
+    const userProfile = JSON.parse(localStorage.getItem('userProfile'));
+    if (userProfile) {
+      document.getElementById('userProfileForm').style.display = 'none';
+      document.getElementById('userProfileDetails').style.display = 'block';
+      document.getElementById('profileName').textContent = userProfile.userName;
+      document.getElementById('profileEmail').textContent = userProfile.userEmail;
+      document.getElementById('profileAge').textContent = userProfile.userAge;
+      document.getElementById('profileGender').textContent = userProfile.userGender;
+    } else {
+      document.getElementById('userProfileForm').style.display = 'block';
+      document.getElementById('userProfileDetails').style.display = 'none';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', displayUserProfile);
+</script></div>
