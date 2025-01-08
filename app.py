@@ -3,6 +3,10 @@ import pickle
 from flask import Flask, render_template, request, session, jsonify
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
+import warnings
+
+# Ignore version mismatch warning temporarily (can be fixed with proper model retraining)
+warnings.filterwarnings("ignore", category=UserWarning, module='sklearn')
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -82,5 +86,6 @@ def predict_disease():
         'diets': diets.split(', ')
     })
 
+# Ensure the app runs on 0.0.0.0 for external access (needed for deployment)
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=5000)
